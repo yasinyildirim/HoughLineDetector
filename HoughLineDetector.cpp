@@ -1,9 +1,23 @@
+/*#******************************************************************************
+ ** IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
+ **
+ ** By downloading, copying, installing or using the software you agree to this license (LGPL).
+ ** If you do not agree to this license, do not download, install,
+ ** copy or use the software.
+ **
+ ** See COPYING file for license information.
+ **
+ **  Creation - November 2017
+ **      Author: Yasin Yıldırım (yildirimyasi(at)gmail(dot)com), Istanbul, Turkey
+ **
+*******************************************************************************/
+
 #include "HoughLineDetector.h"
 #include <opencv2\imgproc.hpp>
 #include <opencv2\ml.hpp>
 //TODO: remove highgui
-#include <opencv2\highgui.hpp>
-#include "DebugUtils.h"
+//#include <opencv2\highgui.hpp>
+
 
 HoughLineDetector::HoughLineDetector()
 {
@@ -68,6 +82,8 @@ void HoughLineDetector::detect(const cv::Mat& src, std::vector<cv::Vec2f> &lines
 					
 					rhoIdx += (numRho - 1) / 2;
 					int& val = houghSpaceAccum.at<int>(k+1, rhoIdx + 1);
+					//weighted accumulation might be 
+					//useful for some applications
 					//val += p[j];
 					++val;
 				}
@@ -75,26 +91,19 @@ void HoughLineDetector::detect(const cv::Mat& src, std::vector<cv::Vec2f> &lines
 		}
 	}
 	
-	//houghSpaceAccum.convertTo(houghSpaceAccum, CV_32F);
-	//cv::threshold(houghSpaceAccum, houghSpaceAccum, voteThreshold, 500, CV_THRESH_TOZERO);
-	
-	//cv::dilate(houghSpaceAccum, houghSpaceAccum, cv::Mat(), cv::Point(-1,-1));
-	//cv::dilate(houghSpaceAccum, houghSpaceAccum, 4cv::Mat(), cv::Point(-1, -1));
-	//cv::kmeans();
-	
 	cv::Mat clsSamples(0,0, CV_64F);
 	double pattArray[3];
-	//const float* accumfPtr;
+	
 	const int* accumiPtr;
 	for (int i = 0; i < houghSpaceAccum.rows; ++i)
 	{
 		accumiPtr = houghSpaceAccum.ptr<int>(i);
 		for (int j = 0; j < houghSpaceAccum.cols; ++j)
 		{
-			//p[j] ;
+			
 			//only consider the high scores 
 			if (accumiPtr[j] > voteThreshold) {
-				//cv::Mat pat = (cv::Mat_<double>(1, 3) << j, i, accumiPtr[j]);
+				
 				pattArray[0] = static_cast<double>(j);
 				pattArray[1] = static_cast<double>(i);
 				pattArray[2] = static_cast<double>(accumiPtr[j]);
@@ -107,7 +116,7 @@ void HoughLineDetector::detect(const cv::Mat& src, std::vector<cv::Vec2f> &lines
 	if (clsSamples.rows > expMaxAlgorithm->getClustersNumber()) {
 		expMaxAlgorithm->trainEM(clsSamples);
 		gmmMeans = expMaxAlgorithm->getMeans();
-		std::cout << DebugUtils::type2str(gmmMeans.type()) <<std::endl;
+		
 		const double* gmmMeansPtr;
 		for (int i = 0; i < gmmMeans.rows; ++i) {
 			gmmMeansPtr = gmmMeans.ptr<double>(i);
@@ -118,7 +127,7 @@ void HoughLineDetector::detect(const cv::Mat& src, std::vector<cv::Vec2f> &lines
 		}
 	}
 	
-	
+	/*
 	//Below code is for visualisation purposes.
 	double maxVal, minVal;
 	cv::minMaxIdx(houghSpaceAccum, &minVal, &maxVal);
@@ -126,6 +135,7 @@ void HoughLineDetector::detect(const cv::Mat& src, std::vector<cv::Vec2f> &lines
 	houghSpaceAccum.convertTo(houghSpaceAccum, CV_8UC1, 255.0 / (maxVal - minVal), 0);
 	
 	cv::imshow("houghSpaceAccum", houghSpaceAccum);
-	//assuming waitKey is called after. 
+	//assuming waitKey is called after.
+	*/ 
 	
 }
